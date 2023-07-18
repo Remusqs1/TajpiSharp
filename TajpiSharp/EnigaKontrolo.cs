@@ -17,7 +17,7 @@ namespace TajpiSharp
         private void Ek()
         {
             var agordoj = agordoKontrolo.LegiAgordoj();
-            agordKlavoj = agordoj.KlavoListo;
+            //agordKlavoj = agordoj.KlavoListo;
         }
 
         private void AkiriPremitajKlavoj(List<Keys> klavoj)

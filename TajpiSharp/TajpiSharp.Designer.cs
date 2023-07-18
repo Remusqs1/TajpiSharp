@@ -170,8 +170,11 @@
             this.sufiksojTekstoKadro.Location = new System.Drawing.Point(133, 130);
             this.sufiksojTekstoKadro.Multiline = true;
             this.sufiksojTekstoKadro.Name = "sufiksojTekstoKadro";
+            this.sufiksojTekstoKadro.ShortcutsEnabled = false;
             this.sufiksojTekstoKadro.Size = new System.Drawing.Size(161, 24);
             this.sufiksojTekstoKadro.TabIndex = 20;
+            this.sufiksojTekstoKadro.TextChanged += new System.EventHandler(this.Majuskligo);
+            this.sufiksojTekstoKadro.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.NurLiteroj);
             // 
             // sufiksoElektoBtn
             // 
@@ -219,8 +222,11 @@
             this.prefiksojTekstoKadro.Location = new System.Drawing.Point(133, 67);
             this.prefiksojTekstoKadro.Multiline = true;
             this.prefiksojTekstoKadro.Name = "prefiksojTekstoKadro";
+            this.prefiksojTekstoKadro.ShortcutsEnabled = false;
             this.prefiksojTekstoKadro.Size = new System.Drawing.Size(161, 24);
             this.prefiksojTekstoKadro.TabIndex = 15;
+            this.prefiksojTekstoKadro.TextChanged += new System.EventHandler(this.Majuskligo);
+            this.prefiksojTekstoKadro.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.NurLiteroj);
             // 
             // rektajKlavojElektoBtn
             // 
@@ -524,6 +530,7 @@
             this.nuligiBtn.TabIndex = 7;
             this.nuligiBtn.Text = "Nuligi";
             this.nuligiBtn.UseVisualStyleBackColor = true;
+            this.nuligiBtn.Click += new System.EventHandler(this.nuligiBtn_Click);
             // 
             // akceptiBtn
             // 
@@ -533,6 +540,7 @@
             this.akceptiBtn.TabIndex = 6;
             this.akceptiBtn.Text = "Akcepti";
             this.akceptiBtn.UseVisualStyleBackColor = true;
+            this.akceptiBtn.Click += new System.EventHandler(this.akceptiBtn_Click);
             // 
             // aktivaBtn
             // 
@@ -565,7 +573,6 @@
             this.Controls.Add(this.klavaroKadro);
             this.Name = "TajpiSharpForm";
             this.Text = "TajpiSharp";
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TajpiSharpForm_KeyDown);
             this.klavaroKadro.ResumeLayout(false);
             this.klavaroKadro.PerformLayout();
             this.enigoKadro.ResumeLayout(false);

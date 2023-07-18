@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
 using TajpiSharp.Klasoj;
 
 namespace TajpiSharp
@@ -15,7 +12,7 @@ namespace TajpiSharp
             Ek();
         }
 
-        string dosierindiko = "agordoj.json";
+        string dosierindiko = string.Concat(AppDomain.CurrentDomain.BaseDirectory, "/agordoj.json");
         public UzantAgordoj Ek()
         {
             if (!EkzistasAgordoj())
@@ -34,8 +31,39 @@ namespace TajpiSharp
 
             UzantAgordoj agordoj = new UzantAgordoj()
             {
-                Aktiva = true,
-                KlavoListo = new List<Keys>()
+                Aktiva =  true,
+                RektajKlavoj = new RektajKlavoj()
+                {
+                    UziRektajKlavoj = false,
+                    Klavoj = new string[6]
+                },
+                Prefiksoj = new Prefiksoj()
+                {
+                    UziPrefiksoj = false,
+                    Malvidebligi = false,
+                    Prefiksaro = string.Empty
+                },
+                Sufiksoj = new Sufiksoj()
+                {
+                    UziSufiksoj = false,
+                    RipetoForigas = false,
+                    Sufiksaro = string.Empty
+                },
+                UziW = false,
+                UziAltGr = false,
+                UziAutoAuhEh = false,
+                EnigoModo = 1,
+                Alglui = false,
+                HTMLSurogatoj = false,
+                StartiAktiva = false,
+                StartiAuto = false,
+                KlavoKomandoj = new KlavoKomandoj()
+                {
+                    UziCtrl = false,
+                    UziAlt = false,
+                    UziShift = false,
+                    Klavo = null
+                }
             };
 
             string json = JsonConvert.SerializeObject(agordoj, Formatting.Indented);
@@ -76,6 +104,30 @@ namespace TajpiSharp
 
             string novaDosiero = JsonConvert.SerializeObject(agordoj, Formatting.Indented);
             File.WriteAllText(dosierindiko, novaDosiero);
+        }
+
+        public bool ModifiChiujnAgordojn(UzantAgordoj agordoj)
+        {
+            try
+            {
+                string novajAgordoj = JsonConvert.SerializeObject(agordoj, Formatting.Indented);
+                File.WriteAllText(dosierindiko, novajAgordoj);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                string novajAgordoj = JsonConvert.SerializeObject(agordoj, Formatting.Indented);
+                File.WriteAllText(dosierindiko, novajAgordoj);
+
+                throw ex;
+            }
+        }
+
+        public bool AkiriNunaAktiveco()
+        {
+            var agordo = LegiAgordoj();
+            return agordo.Aktiva;
         }
     }
 }

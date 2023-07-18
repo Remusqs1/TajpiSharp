@@ -3,28 +3,18 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using TajpiSharp.Klasoj;
+using System.Windows.Input;
 
 namespace TajpiSharp
 {
 
     public partial class TajpiSharpForm : Form
     {
-        int? klavoListoValoro = 0;
+
+        public static AgordoKontrolo AgordoKontrolo = new AgordoKontrolo();
+        public UzantAgordoj Agordoj = null;
         private Dictionary<Keys, string> klavoMapigo;
-        bool uziRektajKlavoj = false;
-        bool uziPrefiksoj = false;
-        bool uziIgiMalvidebla = false;
-        bool uziSufiksoj = false;
-        bool uziRipeto = false;
-        bool uziAltGr = false;
-        bool uziAutoAuh = false;
-        bool uziW = false;
-        public static bool estasAktiva = true;
-        public static AgordoKontrolo agordoKontrolo = new AgordoKontrolo();
-
-
-        List<Keys> klavKomandaro = new List<Keys>(); //savitaj klavoj
-        private List<Keys> premitajKlavoj = new List<Keys>();
 
         public TajpiSharpForm()
         {
@@ -37,9 +27,7 @@ namespace TajpiSharp
 
         private void EkiForm()
         {
-            this.akceptiBtn.Enabled = false;
-
-            if (!uziRektajKlavoj)
+            if (!Agordoj.RektajKlavoj.UziRektajKlavoj)
             {
                 this.tekstoKadroCh.Enabled = false;
                 this.tekstoKadroGh.Enabled = false;
@@ -49,19 +37,19 @@ namespace TajpiSharp
                 this.tekstoKadroUh.Enabled = false;
             }
 
-            if (!uziPrefiksoj)
+            if (!Agordoj.Prefiksoj.UziPrefiksoj)
             {
                 this.prefiksojTekstoKadro.Enabled = false;
                 this.malvidebligiElektoBtn.Enabled = false;
             }
 
-            if (!uziSufiksoj)
+            if (!Agordoj.Sufiksoj.UziSufiksoj)
             {
                 this.sufiksojTekstoKadro.Enabled = false;
                 this.ripetiElektoBtn.Enabled = false;
             }
 
-            this.aktivaBtn.BackColor = estasAktiva ? Color.Green : Color.Red;
+            this.aktivaBtn.BackColor = Agordoj.Aktiva? Color.Green : Color.Red;
         }
 
         private void EkKlavoMapigo()
@@ -74,6 +62,16 @@ namespace TajpiSharp
                 { Keys.Divide, "/" },
                 { Keys.Decimal, "." },
                 { Keys.Separator, "," },
+                { Keys.D0, "0" },
+                { Keys.D1, "1" },
+                { Keys.D2, "2" },
+                { Keys.D3, "3" },
+                { Keys.D4, "4" },
+                { Keys.D5, "5" },
+                { Keys.D6, "6" },
+                { Keys.D7, "7" },
+                { Keys.D8, "8" },
+                { Keys.D9, "9" },
             };
         }
 
@@ -98,12 +96,53 @@ namespace TajpiSharp
 
         private void GetUzantajValoroj()
         {
-            if (klavoListoValoro == 0 || klavoListoValoro == null) this.klavaroListo.SelectedItem = Keys.Space;
+            bool ekzistasAgordoj = AgordoKontrolo.EkzistasAgordoj();
 
-            //TODO
-            klavKomandaro.Append(Keys.Control);
-            klavKomandaro.Append(Keys.Alt);
-            klavKomandaro.Append(Keys.Space);
+            if (ekzistasAgordoj)
+            {
+                Agordoj = AgordoKontrolo.LegiAgordoj();
+
+                this.rektajKlavojElektoBtn.Checked = Agordoj.RektajKlavoj.UziRektajKlavoj;
+                if (this.rektajKlavojElektoBtn.Checked)
+                {
+                    this.tekstoKadroCh.Text = Agordoj.RektajKlavoj.Klavoj[0];
+                    this.tekstoKadroGh.Text = Agordoj.RektajKlavoj.Klavoj[1];
+                    this.tekstoKadroHh.Text = Agordoj.RektajKlavoj.Klavoj[2];
+                    this.tekstoKadroJh.Text = Agordoj.RektajKlavoj.Klavoj[3];
+                    this.tekstoKadroSh.Text = Agordoj.RektajKlavoj.Klavoj[4];
+                    this.tekstoKadroUh.Text = Agordoj.RektajKlavoj.Klavoj[5];
+                }
+
+                this.prefiksojElektoBtn.Checked = Agordoj.Prefiksoj.UziPrefiksoj;
+                if (this.prefiksojElektoBtn.Checked)
+                {
+                    this.prefiksojTekstoKadro.Text = Agordoj.Prefiksoj.Prefiksaro;
+                    this.malvidebligiElektoBtn.Checked = Agordoj.Prefiksoj.Malvidebligi;
+                }
+
+                this.sufiksoElektoBtn.Checked = Agordoj.Sufiksoj.UziSufiksoj;
+                if (this.sufiksoElektoBtn.Checked)
+                {
+                    this.sufiksojTekstoKadro.Text = Agordoj.Sufiksoj.Sufiksaro;
+                    this.ripetiElektoBtn.Checked = Agordoj.Sufiksoj.RipetoForigas;
+                }
+
+                this.AltGrSupersigniElektoBtn.Checked = Agordoj.UziAltGr;
+                this.AutoAuhEuhElektoBtn.Checked = Agordoj.UziAutoAuhEh;
+                this.wUhElektoButono.Checked = Agordoj.UziW;
+                this.algluiElektoBtn.Checked = Agordoj.Alglui;
+                this.htmlElektoBtn.Checked = Agordoj.HTMLSurogatoj;
+                this.startiAktivaElektoBtn.Checked = Agordoj.StartiAktiva;
+                this.startiAutoElektoBtn.Checked = Agordoj.StartiAuto;
+
+                this.ctrlElektoBtn.Checked = Agordoj.KlavoKomandoj.UziCtrl;
+                this.altElektoBtn.Checked = Agordoj.KlavoKomandoj.UziAlt;
+                this.shiftElektoBtn.Checked = Agordoj.KlavoKomandoj.UziShift;
+                this.klavaroListo.SelectedItem = Agordoj.KlavoKomandoj.Klavo;
+
+                if (Agordoj.EnigoModo == 1) this.unikodoRadBtn.Checked = true;
+                else this.latina3RadBtn.Checked = true;
+            }
         }
 
         private void rektajKlavojElektoBtn_CheckedChanged(object sender, EventArgs e)
@@ -120,7 +159,6 @@ namespace TajpiSharp
         {
             this.prefiksojTekstoKadro.Enabled = this.prefiksojElektoBtn.Checked;
             this.malvidebligiElektoBtn.Enabled = this.prefiksojElektoBtn.Checked;
-
         }
 
         private void sufiksoElektoBtn_CheckedChanged(object sender, EventArgs e)
@@ -129,40 +167,82 @@ namespace TajpiSharp
             this.ripetiElektoBtn.Enabled = this.sufiksoElektoBtn.Checked;
         }
 
-        private void TajpiSharpForm_KeyDown(object sender, KeyEventArgs e)
+        private void akceptiBtn_Click(object sender, EventArgs e)
         {
-            if (!premitajKlavoj.Contains(e.KeyCode)) premitajKlavoj.Add(e.KeyCode);
 
-            if (ChiujPremitaj(premitajKlavoj)) this.ShanghiAktiveco();
+            string[] klavoj = new string[6];
+            klavoj.Append(this.tekstoKadroCh.Text);
+            klavoj.Append(this.tekstoKadroGh.Text);
+            klavoj.Append(this.tekstoKadroHh.Text);
+            klavoj.Append(this.tekstoKadroJh.Text);
+            klavoj.Append(this.tekstoKadroSh.Text);
+            klavoj.Append(this.tekstoKadroUh.Text);
 
-            if (estasAktiva)
-            {
+            UzantAgordoj agordoj = new UzantAgordoj() {
 
-            }
-        }
-
-        private bool ChiujPremitaj(List<Keys> klavoj)
-        {
-            if (klavoj.Count != klavKomandaro.Count)
-            {
-                return false;
-            }
-
-            foreach (Keys klavo in klavoj)
-            {
-                if (!klavKomandaro.Contains(klavo))
+                RektajKlavoj = new RektajKlavoj()
                 {
-                    return false;
-
+                    UziRektajKlavoj = this.rektajKlavojElektoBtn.Checked,
+                    Klavoj = klavoj
+                },
+                Prefiksoj = new Prefiksoj()
+                {
+                    UziPrefiksoj = this.prefiksojElektoBtn.Checked,
+                    Prefiksaro = this.prefiksojTekstoKadro.Text,
+                    Malvidebligi = this.malvidebligiElektoBtn.Checked
+                },
+                Sufiksoj = new Sufiksoj()
+                {
+                    UziSufiksoj = this.sufiksoElektoBtn.Checked,
+                    Sufiksaro = this.sufiksojTekstoKadro.Text,
+                    RipetoForigas = this.ripetiElektoBtn.Checked
+                },
+                UziAltGr = this.AltGrSupersigniElektoBtn.Checked,
+                UziAutoAuhEh = this.AutoAuhEuhElektoBtn.Checked,
+                UziW = this.wUhElektoButono.Checked,
+                EnigoModo = this.unikodoRadBtn.Checked ? 1 : 2,
+                Alglui = this.algluiElektoBtn.Checked,
+                HTMLSurogatoj = this.htmlElektoBtn.Checked,
+                StartiAktiva = this.startiAktivaElektoBtn.Checked,
+                StartiAuto = this.startiAutoElektoBtn.Checked,
+                KlavoKomandoj = new KlavoKomandoj()
+                {
+                    UziAlt = this.altElektoBtn.Checked,
+                    UziCtrl = this.ctrlElektoBtn.Checked,
+                    UziShift = this.shiftElektoBtn.Checked,
+                    Klavo = this.klavaroListo.SelectedItem != null ? this.klavaroListo.SelectedItem.ToString() : null,
                 }
-            }
+            };
 
-            return true;
+            AgordoKontrolo.ModifiChiujnAgordojn(agordoj);
         }
 
-        private void ShanghiAktiveco()
+        private void nuligiBtn_Click(object sender, EventArgs e)
         {
-            estasAktiva = !estasAktiva;
+            this.GetUzantajValoroj();
+        }
+
+        private void Majuskligo(object sender, EventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            textBox.Text = textBox.Text.ToUpper();
+            textBox.SelectionStart = textBox.Text.Length;
+        }
+
+        private void NurLiteroj(object sender, KeyPressEventArgs e)
+        {
+
+            if (e.KeyChar == (char)Keys.V && ModifierKeys == Keys.Control)
+            {
+                e.Handled = true;
+            }
+
+            if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsPunctuation(e.KeyChar) &&
+                e.KeyChar != '^' && e.KeyChar != '\'' && e.KeyChar != '"' &&
+                e.KeyChar != '*' && e.KeyChar != '<' && e.KeyChar != '>')
+            {
+                e.Handled = true;
+            }
         }
     }
 }

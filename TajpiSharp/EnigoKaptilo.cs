@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using TajpiSharp.Klasoj;
 
 namespace TajpiSharp
 {
@@ -30,48 +31,59 @@ namespace TajpiSharp
         private static extern IntPtr GetModuleHandle(string lpModuleName);
         #endregion
 
-        public static AgordoKontrolo agordoKontrolo = new AgordoKontrolo();
-        public static EnigaKontrolo enigaKontrolo = new EnigaKontrolo();
-        private static List<Keys> premitajKlavoj = new List<Keys>();
+        public static AgordoKontrolo AgordoKontrolo = new AgordoKontrolo();
+        public static EnigaKontrolo EnigaKontrolo = new EnigaKontrolo();
+        private static List<Keys> PremitajKlavoj = new List<Keys>();
+        private static List<Keys> MalAktivajKlavoj = new List<Keys>();
+        private static UzantAgordoj Agordoj = new UzantAgordoj();
+        private static bool Aktiveco = false;
+
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
         private const int WM_KEYUP = 0x0101;
 
         private static IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-
-            var agordoj = agordoKontrolo.LegiAgordoj();
-
+            var param1 = (IntPtr)WM_KEYDOWN;
+            var param2 = (IntPtr)WM_KEYUP;
 
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 Keys key = (Keys)vkCode;
 
-                if (!premitajKlavoj.Contains(key))
+                if (!PremitajKlavoj.Contains(key))
                 {
-                    premitajKlavoj.Add(key);
+                    key = MapiKlavo(key);
+                    if (PremitajKlavoj.All(x => x != key))
+                    {
+                        PremitajKlavoj.Add(key);
+                    }
                 }
-
             }
             
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYUP)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 Keys key = (Keys)vkCode;
-                premitajKlavoj.Remove(key);
+                key = MapiKlavo(key);
+                PremitajKlavoj.Remove(key);
+            }
+
+            if (MalAktivajKlavoj.Count == PremitajKlavoj.Count)
+            {
+                if (KontroliKlavoj(MalAktivajKlavoj))
+                {
+                    bool nunaAktiveco = AgordoKontrolo.AkiriNunaAktiveco();
+                    AgordoKontrolo.ModifiAgordoj("Aktiva", !nunaAktiveco);
+                    PremitajKlavoj = new List<Keys>();
+                }
             }
 
 
-
-            if (agordoj.KlavoListo.Count == premitajKlavoj.Count && KontroliKlavoj(agordoj.KlavoListo))
+            if (AgordoKontrolo.AkiriNunaAktiveco())
             {
-                agordoKontrolo.ModifiAgordoj("Aktiva", !agordoj.Aktiva);
-            }
-
-            if (agordoj.Aktiva)
-            {
-                //TODO
+                Console.WriteLine("TODO - Anstatauhi vortojn");
             }
 
             return CallNextHookEx(hookHandle, nCode, wParam, lParam);
@@ -83,6 +95,9 @@ namespace TajpiSharp
         public static void Main(string[] args)
         {
             keyboardHookProc = KeyboardHookCallback;
+            Agordoj = AgordoKontrolo.LegiAgordoj();
+            Aktiveco = Agordoj.Aktiva;
+            MalAktivajKlavoj = AkiriMalaktivigajklavoj(Agordoj.KlavoKomandoj);
 
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
@@ -93,10 +108,45 @@ namespace TajpiSharp
             }
         }
 
+        private static Keys MapiKlavo(Keys klavo)
+        {
+            if (klavo.Equals(Keys.LControlKey) || klavo.Equals(Keys.RControlKey) || klavo.Equals(Keys.ControlKey))
+            {
+                klavo = Keys.Control;
+            }
+            else if (klavo.Equals(Keys.RShiftKey) || klavo.Equals(Keys.LShiftKey) || klavo.Equals(Keys.ShiftKey))
+            {
+                klavo = Keys.Shift;
+            }
+            else if (klavo.Equals(Keys.LMenu) || klavo.Equals(Keys.RMenu))
+            {
+                klavo = Keys.Alt;
+            }
+
+            return klavo;
+        }
+
         private static bool KontroliKlavoj(List<Keys> agordKlavoj)
         {
-            agordoKontrolo.ModifiAgordoj("Premitaj", premitajKlavoj);
-            return premitajKlavoj.All(klavo => agordKlavoj.Contains(klavo));
+            bool valida = PremitajKlavoj.All(klavo => agordKlavoj.Contains(klavo));
+            return valida;
+        }
+
+        private static List<Keys> AkiriMalaktivigajklavoj(KlavoKomandoj klavoKomandoj)
+        {
+            List<Keys> klavoListo = new List<Keys>();
+
+            if (klavoKomandoj.UziCtrl) klavoListo.Add(Keys.Control);
+            if (klavoKomandoj.UziAlt) klavoListo.Add(Keys.Alt);
+            if (klavoKomandoj.UziShift) klavoListo.Add(Keys.Shift);
+
+            if (!string.IsNullOrEmpty(klavoKomandoj.Klavo))
+            {
+                Keys miaKlavo = (Keys)Enum.Parse(typeof(Keys), klavoKomandoj.Klavo);
+                klavoListo.Add(miaKlavo);
+            }
+
+            return klavoListo;
         }
 
 
